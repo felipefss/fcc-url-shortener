@@ -5,8 +5,7 @@ const shortUrl = require('./shortURL');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-// const mongoUri = process.env.MONGODB_URI;
-const mongoUri = 'mongodb://localhost:27017/mydb';
+const mongoUri = process.env.MONGODB_URI;
 
 const encodeUrl = fullUrl => {
     return new Promise((resolve, reject) => {
