@@ -39,10 +39,49 @@ const encodeUrl = fullUrl => {
     });
 };
 
+const decodeUrl = encodedUrl => {
+    return new Promise((resolve, reject) => {
+        Mongo.connect(mongoUri, (err, db) => {
+            if (err) {
+                reject(err);
+            }
+            const collection = db.collection('short_urls');
+            const id = shortUrl.decode(encodedUrl);
+            collection.findOne({ _id: id })
+                .then(result => {
+                    db.close();
+                    resolve(result);
+                })
+                .catch(err => {
+                    db.close();
+                    reject(err);
+                });
+        });
+    });
+};
+
 app.use(express.static('public'));
 
 app.get('/:short', (req, res) => {
+    const errorObj = {
+        error: {
+            URL: `${req.headers.host}/${req.params.short}`
+        }
+    };
 
+    decodeUrl(req.params.short)
+        .then(result => {
+            if (result) {
+                res.redirect(result.originalUrl);
+            } else {
+                errorObj.error.reason = 'Invalid short URL';
+                res.send(errorObj);
+            }
+        })
+        .catch(err => {
+            errorObj.error.reason = '' + err;
+            res.send(errorObj);
+        });
 });
 
 app.get('/new/*', (req, res) => {
